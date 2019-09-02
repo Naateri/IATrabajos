@@ -15,6 +15,7 @@ int grid_x, grid_y;
 
 struct Point2D{
 	int x, y;
+	bool activated = true;
 	Point2D(){
 		this->x = this->y = 0;
 	}
@@ -69,10 +70,12 @@ void delete_node(Point2D* A){
 	}
 	delete A;
 	A = points[index];
+	points[index]->activated = false;
 	for(int i = 0; i < deleted_nodes.size(); i++){
 		if (deleted_nodes[i]->x == A->x &&
 			deleted_nodes[i]->y == A->y){
 			deleted_nodes.erase(deleted_nodes.begin() + i);
+			points[index]->activated = true;
 			return;
 		}
 	}
@@ -95,7 +98,6 @@ void OnMouseClick(int button, int state, int x, int y){
 	Point2D* pt;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 		//convertir x,y
-		std::cout << x-(grid_x/2.0f) << " " << grid_y/2.0f - y << std::endl;
 		pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
 		find_closest(pt);
 		delete pt;
@@ -111,7 +113,6 @@ void OnMouseClick(int button, int state, int x, int y){
 void OnMouseMotion(int x, int y){
 	Point2D* pt;
 	if(r){
-		std::cout << x << " " << y << std::endl;
 		pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
 		delete_node(pt);
 	}
