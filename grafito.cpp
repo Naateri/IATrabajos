@@ -86,8 +86,8 @@ void generate_points(){
 	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
 	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
 	Point2D* pt;
-	for(int i = min_x + 5.0f; i < max_x; i += 10){
-		for (int j = min_y + 5.0f; j < max_y; j += 10){
+	for(int i = min_x + 5.0f; i < max_x - 5.0f; i += 10){
+		for (int j = min_y + 5.0f; j < max_y - 5.0f; j += 10){
 			pt = new Point2D(i, j);
 			points.push_back(pt);
 		}
