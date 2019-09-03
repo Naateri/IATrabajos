@@ -31,6 +31,7 @@ std::vector<Point2D*> points;
 std::vector<Point2D*> start_end; //si el tamaño de este es dos, pedimos [0] como inicio
 //y [1] como objetivo
 std::vector<Point2D*> deleted_nodes; //nodos que ya no pertenecen al grafo
+std::vector<Point2D*> path;
 
 //dibuja un simple gizmo
 void displayGizmo(){
@@ -41,6 +42,23 @@ void displayGizmo(){
 bool r = false;
 
 void draw_point(int x, int y);
+
+void draw_path(){
+	for(int i = 0;i<path.size()-1;++i){
+		glPointSize(4);
+		glBegin(GL_POINTS);
+			glColor3f(0,1.0,0);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+		glEnd();
+		glLineWidth(0.3f);
+		glColor3f(0.0, 1.0, 0.0);
+		glBegin(GL_LINES);
+			glVertex2f((float)path[i]->x,(float)path[i]->y);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+		glEnd();
+	}
+}
 
 float euclidean_distance(Point2D* A, Point2D* B){
 	return sqrt( pow((A->x - B->x), 2) + pow((A->y - B->y), 2) );
@@ -94,13 +112,13 @@ void generate_points(){
 			points.push_back(pt);
 		}
 	}
-	int tempx = (grid_x*2)/10;
- 	int tempy = (grid_y*2)/10;
+	int tempx = (grid_x - 5)/10;
+ 	int tempy = (grid_y - 5)/10;
 	cout<<tempx<<" "<<tempy<<endl;
-	for(int i = 0;i<(grid_x*2)/10;i++){
-		for(int j = 0;j<(grid_y*2)/10;j++){
+	for(int i = 0;i<tempx;i++){
+		for(int j = 0;j<tempy;j++){
 			//cout<<"------------------------------------------------------"<<endl;
-			cout<<points[i*tempy+j]->x<<" "<<points[i*tempy+j]->y<<endl;
+			//cout<<points[i*tempy+j]->x<<" "<<points[i*tempy+j]->y<<endl;
 			//cout<<"------------------------------------------------------"<<endl;
 			if(j-1>=0){
 				points[i*tempy+j]->neigh.push_back(points[i*tempy+(j-1)]);
@@ -199,6 +217,8 @@ void glPaint(void) {
 			glEnd();
 		}
 	}
+	//imprimir el camino encontrado
+	draw_path();
 	//dibuja el gizmo
 	displayGizmo();
 	
