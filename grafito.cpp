@@ -4,6 +4,7 @@
 #include <vector>
 #include <GL/glut.h>
 #include <list>
+#include <stack>
 
 #define KEY_ESC 27
 #define DFS '1'
@@ -116,7 +117,8 @@ void delete_node(Point2D* A){
 	}
 	deleted_nodes.push_back(A);
 }
-void b_profundidad(Point2D* partida, Point2D* llegada){
+
+/*void b_profundidad(Point2D* partida, Point2D* llegada){
 	path.clear();
 	reset_dfs();
 	Point2D* actual= partida;
@@ -148,8 +150,37 @@ void b_profundidad(Point2D* partida, Point2D* llegada){
 		//cout<<"sigue"<<actual->x<<" , "<<actual->y<<endl;
 	}
 	path.push_back(fin);
+}*/
+
+stack<Point2D*> my_stack;
+
+void dfs(Point2D* partida, Point2D* llegada, vector<Point2D*> cur_path){
+	bool flag;
+	Point2D* v;
+	
+	flag = 0;
+	v = my_stack.top();
+	cur_path.push_back(v);
+	
+	if (v->x == llegada->x && v->y == llegada->y){
+		path = cur_path;
+		return;
+	}
+	
+	for(int i=0;i<v->neigh.size();i++){
+		if(v->neigh[i]->activated==true && v->neigh[i]->dfs == false){
+			my_stack.push(v->neigh[i]);
+			v->neigh[i]->dfs = true;
+			flag=true;
+		}
+	}
+	if (!flag){
+		my_stack.pop();
+	}
+	dfs(partida, llegada, cur_path);
 	
 }
+
 void hill(Point2D partida,Point2D llegada)
 {
 	path.clear();
@@ -325,14 +356,23 @@ void glPaint(void) {
 	}
 	//imprimir el camino encontrado
 	draw_path();
+	//techniques
 	
 	if (start_end.size() == 2){
 		if (technique == 1){
-			b_profundidad(start_end[0], start_end[1]);
+			while(! my_stack.empty()){ //emptying stack
+				my_stack.pop();
+			}
+			my_stack.push(start_end[0]);
+			start_end[0]->dfs = true;
+			vector<Point2D*> cur_path;
+			dfs(start_end[0], start_end[1], cur_path);
+			reset_dfs();
 		} else if (technique == 2){
 			hill(*start_end[0], *start_end[1]);
 		}
 	}
+	
 	//dibuja el gizmo
 	displayGizmo();
 	//doble buffer, mantener esta instruccion al fin de la funcion
