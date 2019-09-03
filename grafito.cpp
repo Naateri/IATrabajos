@@ -3,6 +3,7 @@
 #include <math.h>
 #include <vector>
 #include <GL/glut.h>
+#include <list>
 
 #define KEY_ESC 27
 #define DFS 1
@@ -20,11 +21,11 @@ struct Point2D{
 	Point2D(){
 		this->x = this->y = 0;
 	}
-	Point2D(int x, int y){
-		this-> x = x;
-		this->y = y;
-	}
-	
+		Point2D(int x, int y){
+			this-> x = x;
+			this->y = y;
+		}
+			
 };
 
 std::vector<Point2D*> points;
@@ -48,24 +49,24 @@ void draw_path(){
 		for(int i = 0;i<path.size()-1;++i){
 			glPointSize(8);
 			glBegin(GL_POINTS);
-				glColor3f(0,1.0,0);
-				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
-				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glColor3f(0,1.0,0);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
 			glEnd();
 			glLineWidth(0.3f);
 			glColor3f(0.0, 1.0, 0.0);
 			glBegin(GL_LINES);
-				glVertex2f((float)path[i]->x,(float)path[i]->y);
-				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glVertex2f((float)path[i]->x,(float)path[i]->y);
+			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
 			glEnd();
 		}
 	}
 }
-
+		
 float euclidean_distance(Point2D* A, Point2D* B){
 	return sqrt( pow((A->x - B->x), 2) + pow((A->y - B->y), 2) );
 }
-
+	
 void find_closest(Point2D* A){
 	if (start_end.size() >= 2) start_end.clear();
 	float dist = euclidean_distance(A, points[0]), cur_dist;
@@ -79,7 +80,7 @@ void find_closest(Point2D* A){
 	}
 	start_end.push_back(points[index]);
 }
-
+	
 void delete_node(Point2D* A){
 	float dist = euclidean_distance(A, points[0]), cur_dist;
 	int index = 0;
@@ -103,7 +104,97 @@ void delete_node(Point2D* A){
 	}
 	deleted_nodes.push_back(A);
 }
-
+void b_profundidad(Point2D partida,Point2D llegada)
+{
+	path.clear();
+	Point2D* actual=&partida;
+	Point2D* fin=&llegada;
+	Point2D* ante=actual;
+	
+	int min_x = -grid_x, max_x = grid_x;
+	int min_y = -grid_y, max_y = grid_y;
+	
+	list<Point2D* > vacio;
+	vacio.push_front(actual);
+	path.push_back(actual);
+	
+	
+	while(actual->x!=fin->x || actual->y!=fin->y  ){
+		
+		bool cambio=false;
+		for(int i=0;i<actual->neigh.size();i++){
+			if(actual->neigh[i]->activated==true){
+				vacio.push_front(actual->neigh[i]);
+				//cout<<actual->neigh[i]->x<<" , "<<actual->neigh[i]->y<<endl;
+				actual->neigh[i]->activated=false;
+				cambio=true;
+			}
+		}
+		if(cambio==false)
+			path.push_back(ante);
+		ante=actual;
+		actual=vacio.front();
+		vacio.pop_front();
+		path.push_back(actual);
+		//cout<<"sigue"<<actual->x<<" , "<<actual->y<<endl;
+	}
+	path.push_back(fin);
+	
+}
+void hill(Point2D partida,Point2D llegada)
+{
+	path.clear();
+	Point2D* actual=&partida;
+	Point2D* fin=&llegada;
+	Point2D* ante=actual;
+	
+	int min_x = -grid_x, max_x = grid_x;
+	int min_y = -grid_y, max_y = grid_y;
+	
+	list<Point2D*> vacio;
+	vector<Point2D*> temp;
+	vacio.push_front(actual);
+	path.push_back(actual);
+	
+	
+	while(actual->x!=fin->x || actual->y!=fin->y  ){
+		
+		bool cambio=false;
+		for(int i=0;i<actual->neigh.size();i++){
+			if(actual->neigh[i]->activated==true){
+				temp.push_back(actual->neigh[i]);
+				//cout<<actual->neigh[i]->x<<" , "<<actual->neigh[i]->y<<endl;
+				actual->neigh[i]->activated=false;
+				cambio=true;
+			}
+		}
+		
+		
+		
+		while(temp.size()!=0){
+			int i;
+			int mayor=0;
+			float a,b;
+			a=euclidean_distance(actual, temp[0]);
+			for(i=1;i<temp.size();i++){
+				b=euclidean_distance(actual, temp[i]);
+				if(b>a){
+					mayor=i;
+					a=b;
+				}
+			}
+			vacio.push_front(temp[mayor]);
+			temp.erase(temp.begin()+mayor);
+		}
+		if(cambio==false)
+			  path.push_back(ante);
+		ante=actual;
+		actual=vacio.front();
+		vacio.pop_front();
+		path.push_back(actual);
+	}
+	path.push_back(fin);
+}
 void generate_points(){
 	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
 	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
@@ -115,7 +206,7 @@ void generate_points(){
 		}
 	}
 	int tempx = (grid_x - 5)/10;
- 	int tempy = (grid_y - 5)/10;
+	int tempy = (grid_y - 5)/10;
 	cout<<tempx<<" "<<tempy<<endl;
 	for(int i = 0;i<tempx;i++){
 		for(int j = 0;j<tempy;j++){
@@ -159,7 +250,7 @@ void generate_points(){
 	}
 	cout<<"points"<<points.size()<<endl;
 }
-
+						
 void OnMouseClick(int button, int state, int x, int y){
 	Point2D* pt;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
@@ -175,12 +266,12 @@ void OnMouseClick(int button, int state, int x, int y){
 		r = false;
 	}
 }
-
+	
 void OnMouseMotion(int x, int y){
 	Point2D* pt;
 	if(r){
-		pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
-		delete_node(pt);
+	pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
+	delete_node(pt);
 	}
 	//opcional
 }
@@ -216,22 +307,22 @@ void glPaint(void) {
 					glLineWidth(0.1f);
 					glColor3f(1.0, 0.0, 0.0);
 					glBegin(GL_LINES);
-						glVertex2f((float)points[i]->x,(float)points[i]->y);
-						glVertex2f((float)points[i]->neigh[j]->x,(float)points[i]->neigh[j]->y);
+					glVertex2f((float)points[i]->x,(float)points[i]->y);
+					glVertex2f((float)points[i]->neigh[j]->x,(float)points[i]->neigh[j]->y);
 					glEnd();
 				}
 			}
 		}
 	}
 	//imprimir el camino encontrado
-	draw_path();
+	
 	//dibuja el gizmo
 	displayGizmo();
-	
+	draw_path();
 	//doble buffer, mantener esta instruccion al fin de la funcion
 	glutSwapBuffers();
 }
-
+									
 void draw_point(int x, int y){
 	glBegin(GL_POINTS);
 	glVertex2f(x,y);
@@ -240,7 +331,7 @@ void draw_point(int x, int y){
 	
 	glutSwapBuffers();
 }
-
+	
 //
 //inicializacion de OpenGL
 //
@@ -280,9 +371,13 @@ int main(int argc, char** argv) {
 	
 	cout << "tamaño grilla\n";
 	cin >> grid_x >> grid_y;
-		
+	
 	generate_points();
 	
+	hill(*points[0],*points[10]);
+	for(int i=0;i<path.size();i++){
+		cout<<path[i]->x<<" , "<<path[i]->y<<endl;
+	}
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(grid_x, grid_y); //tamaño de la ventana
