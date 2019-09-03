@@ -44,19 +44,21 @@ bool r = false;
 void draw_point(int x, int y);
 
 void draw_path(){
-	for(int i = 0;i<path.size()-1;++i){
-		glPointSize(4);
-		glBegin(GL_POINTS);
-			glColor3f(0,1.0,0);
-			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
-			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
-		glEnd();
-		glLineWidth(0.3f);
-		glColor3f(0.0, 1.0, 0.0);
-		glBegin(GL_LINES);
-			glVertex2f((float)path[i]->x,(float)path[i]->y);
-			glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
-		glEnd();
+	if(path.size()!=0){
+		for(int i = 0;i<path.size()-1;++i){
+			glPointSize(8);
+			glBegin(GL_POINTS);
+				glColor3f(0,1.0,0);
+				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glEnd();
+			glLineWidth(0.3f);
+			glColor3f(0.0, 1.0, 0.0);
+			glBegin(GL_LINES);
+				glVertex2f((float)path[i]->x,(float)path[i]->y);
+				glVertex2f((float)path[i+1]->x,(float)path[i+1]->y);
+			glEnd();
+		}
 	}
 }
 
@@ -194,7 +196,7 @@ void glPaint(void) {
 	glClear(GL_COLOR_BUFFER_BIT); //CAMBIO
 	glLoadIdentity();
 	glOrtho(-(float(grid_x)/2.0f), (float(grid_x)/2.0f), (-float(grid_y)/2.0f), (float(grid_y)/2.0f), -1.0f, 1.0f);
-	glPointSize(3);
+	glPointSize(6);
 	glBegin(GL_POINTS);
 	glColor3d(0, 0, 255);
 	for(int i = 0; i < points.size(); i++)
@@ -208,13 +210,17 @@ void glPaint(void) {
 	}
 	glEnd();
 	for(int i = 0; i<points.size();++i){
-		for(int j = 0;j<points[i]->neigh.size();++j){
-			glLineWidth(0.1f);
-			glColor3f(1.0, 0.0, 0.0);
-			glBegin(GL_LINES);
-				glVertex2f((float)points[i]->x,(float)points[i]->y);
-				glVertex2f((float)points[i]->neigh[j]->x,(float)points[i]->neigh[j]->y);
-			glEnd();
+		if(points[i]->activated){
+			for(int j = 0;j<points[i]->neigh.size();++j){
+				if(points[i]->activated && points[i]->neigh[j]->activated){
+					glLineWidth(0.1f);
+					glColor3f(1.0, 0.0, 0.0);
+					glBegin(GL_LINES);
+						glVertex2f((float)points[i]->x,(float)points[i]->y);
+						glVertex2f((float)points[i]->neigh[j]->x,(float)points[i]->neigh[j]->y);
+					glEnd();
+				}
+			}
 		}
 	}
 	//imprimir el camino encontrado
