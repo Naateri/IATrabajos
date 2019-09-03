@@ -33,7 +33,7 @@ std::vector<Point2D*> deleted_nodes; //nodos que ya no pertenecen al grafo
 //dibuja un simple gizmo
 void displayGizmo(){
 	glBegin(GL_LINES);
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 	glEnd();
 }
 bool r = false;
@@ -83,11 +83,11 @@ void delete_node(Point2D* A){
 }
 
 void generate_points(){
-	int min_x = -grid_x, max_x = grid_x;
-	int min_y = -grid_y, max_y = grid_y;
+	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
+	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
 	Point2D* pt;
-	for(int i = min_x; i < max_x; i += 10){
-		for (int j = min_y; j < max_y; j += 10){
+	for(int i = min_x + 5.0f; i < max_x; i += 10){
+		for (int j = min_y + 5.0f; j < max_y; j += 10){
 			pt = new Point2D(i, j);
 			points.push_back(pt);
 		}
@@ -129,7 +129,7 @@ void glPaint(void) {
 	//El fondo de la escena al color initial
 	glClear(GL_COLOR_BUFFER_BIT); //CAMBIO
 	glLoadIdentity();
-	glOrtho(-float(grid_x)/2.0f, float(grid_x)/2.0f, -float(grid_y)/2.0f, float(grid_y)/2.0f, -1.0f, 1.0f);
+	glOrtho(-(float(grid_x)/2.0f), (float(grid_x)/2.0f), (-float(grid_y)/2.0f), (float(grid_y)/2.0f), -1.0f, 1.0f);
 	
 	glPointSize(3);
 	glBegin(GL_POINTS);
