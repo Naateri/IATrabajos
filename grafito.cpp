@@ -18,7 +18,9 @@ int grid_x, grid_y, technique = 0;
 struct Point2D{
 	int x, y;
 	vector<Point2D*> neigh;
+	vector<Point2D*> path;
 	bool activated = true, dfs = false;
+	float distance = 0.0f;
 	Point2D(){
 		this->x = this->y = 0;
 	}
@@ -28,6 +30,10 @@ struct Point2D{
 	}
 	
 };
+
+bool compare_distances(Point2D* A, Point2D* B){
+	return A->distance < B->distance;
+}
 
 std::vector<Point2D*> points;
 std::vector<Point2D*> start_end; //si el tamaño de este es dos, pedimos [0] como inicio
@@ -43,6 +49,14 @@ void reset_dfs(){
 	}
 }
 
+void clear_paths(){
+	for(int i = 0; i < points.size(); i++){
+		if (points[i]->activated){
+			points[i]->path.clear();
+		}
+	}
+}
+
 //dibuja un simple gizmo
 void displayGizmo(){
 	glBegin(GL_LINES);
@@ -54,8 +68,8 @@ bool r = false;
 void draw_point(int x, int y);
 
 void draw_path(){
-	if(path.size()!=0){
-		for(int i = 0;i < path.size()-1;++i){
+	if(path.size() > 1){
+		for(int i = 1;i < path.size()-1;++i){
 			glPointSize(8);
 			glBegin(GL_POINTS);
 			glColor3f(0,1.0,0);
@@ -71,6 +85,7 @@ void draw_path(){
 		}
 		glBegin(GL_POINTS);
 		glColor3d(255, 0, 0);
+		glVertex2f((float)path[0]->x, (float)path[0]->y);
 		glVertex2f((float)path[path.size() - 1]->x, (float)path[path.size() - 1]->y);
 		glEnd();
 	}
@@ -104,18 +119,19 @@ void delete_node(Point2D* A){
 			index = i;
 		}
 	}
-	delete A;
-	A = points[index];
+	//delete A;
+	Point2D* temp;
+	temp = points[index];
 	points[index]->activated = false;
 	for(int i = 0; i < deleted_nodes.size(); i++){
-		if (deleted_nodes[i]->x == A->x &&
-			deleted_nodes[i]->y == A->y){
+		if (deleted_nodes[i]->x == temp->x &&
+			deleted_nodes[i]->y == temp->y){
 			deleted_nodes.erase(deleted_nodes.begin() + i);
 			points[index]->activated = true;
 			return;
 		}
 	}
-	deleted_nodes.push_back(A);
+	deleted_nodes.push_back(temp);
 }
 
 /*void b_profundidad(Point2D* partida, Point2D* llegada){
@@ -154,16 +170,16 @@ void delete_node(Point2D* A){
 
 stack<Point2D*> my_stack;
 
-void dfs(Point2D* partida, Point2D* llegada, vector<Point2D*> cur_path){
+void dfs(Point2D* partida, Point2D* llegada){
 	bool flag;
 	Point2D* v;
 	
 	flag = 0;
 	v = my_stack.top();
-	cur_path.push_back(v);
+	v->path.push_back(v);
 	
 	if (v->x == llegada->x && v->y == llegada->y){
-		path = cur_path;
+		path = v->path;
 		return;
 	}
 	
@@ -171,13 +187,14 @@ void dfs(Point2D* partida, Point2D* llegada, vector<Point2D*> cur_path){
 		if(v->neigh[i]->activated==true && v->neigh[i]->dfs == false){
 			my_stack.push(v->neigh[i]);
 			v->neigh[i]->dfs = true;
+			v->neigh[i]->path = v->path;
 			flag=true;
 		}
 	}
 	if (!flag){
 		my_stack.pop();
 	}
-	dfs(partida, llegada, cur_path);
+	dfs(partida, llegada);
 	
 }
 
@@ -234,6 +251,65 @@ void hill(Point2D partida,Point2D llegada)
 	path.push_back(fin);
 }
 
+void update_distances(Point2D* llegada){
+	for(int i = 0; i < points.size(); i++){
+		if (points[i]->activated){
+			points[i]->distance = euclidean_distance(points[i], llegada);
+		}
+	}
+}
+
+list<Point2D*> stack_sim;
+
+void hillclimbing(Point2D* partida, Point2D* llegada){
+	
+	/*if (my_stack.size() == 0){
+		cout << "No path found.\n";
+		return;
+	}*/
+	
+	bool flag;
+	Point2D* v;
+	
+	flag = 0;
+	/*v = stack_sim.front();
+	stack_sim.pop_front();*/
+	v = my_stack.top();
+	my_stack.pop();
+	v->path.push_back(v);
+	
+	if (v->x == llegada->x && v->y == llegada->y){
+		//path = cur_path;
+		path = v->path;
+		return;
+	}
+	
+	list<Point2D*> childs;
+	
+	for(int i=0;i<v->neigh.size();i++){
+		if(v->neigh[i]->activated == true && v->neigh[i]->dfs == false){
+			childs.push_front(v->neigh[i]);
+			v->neigh[i]->dfs = true;
+			v->neigh[i]->path = v->path;
+			flag=true;
+		}
+	}
+	if (flag){
+		childs.sort(compare_distances);
+		childs.reverse();
+		for(list<Point2D*>::iterator it = childs.begin(); it != childs.end();
+			it++){
+			//stack_sim.push_back(*it);
+			my_stack.push(*it);
+		}
+	} else {
+		//stack_sim.pop_front();
+		my_stack.pop();
+	}
+	hillclimbing(partida, llegada);
+}
+
+
 void generate_points(){
 	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
 	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
@@ -287,7 +363,7 @@ void generate_points(){
 			//cout<<"------------------------------------------------------"<<endl;
 		}
 	}
-	cout<<"points"<<points.size()<<endl;
+	cout<<"points "<<points.size()<<endl;
 }
 
 void OnMouseClick(int button, int state, int x, int y){
@@ -354,10 +430,8 @@ void glPaint(void) {
 			}
 		}
 	}
-	//imprimir el camino encontrado
-	draw_path();
-	//techniques
 	
+	//techniques
 	if (start_end.size() == 2){
 		if (technique == 1){
 			while(! my_stack.empty()){ //emptying stack
@@ -365,13 +439,29 @@ void glPaint(void) {
 			}
 			my_stack.push(start_end[0]);
 			start_end[0]->dfs = true;
-			vector<Point2D*> cur_path;
-			dfs(start_end[0], start_end[1], cur_path);
+			dfs(start_end[0], start_end[1]);
 			reset_dfs();
 		} else if (technique == 2){
-			hill(*start_end[0], *start_end[1]);
+			//hill(*start_end[0], *start_end[1]);
+			stack_sim.clear();
+			while(! my_stack.empty()){ //emptying stack
+				my_stack.pop();
+			}
+			update_distances(start_end[1]);
+			//stack_sim.push_front(start_end[0]);
+			my_stack.push(start_end[0]);
+			start_end[0]->dfs = true;
+			hillclimbing(start_end[0], start_end[1]);
+			reset_dfs();
 		}
 	}
+	
+	//imprimir el camino encontrado
+	draw_path();
+	
+	glColor3d(255, 0, 0);
+	for(int i = 0; i < start_end.size(); i++) //start_end points
+		glVertex2f((float)start_end.at(i)->x,(float)start_end.at(i)->y);
 	
 	//dibuja el gizmo
 	displayGizmo();
