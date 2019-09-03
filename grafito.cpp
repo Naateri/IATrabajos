@@ -16,6 +16,7 @@ int grid_x, grid_y;
 struct Point2D{
 	int x, y;
 	vector<Point2D*> neigh;
+	bool activated = true;
 	Point2D(){
 		this->x = this->y = 0;
 	}
@@ -71,10 +72,12 @@ void delete_node(Point2D* A){
 	}
 	delete A;
 	A = points[index];
+	points[index]->activated = false;
 	for(int i = 0; i < deleted_nodes.size(); i++){
 		if (deleted_nodes[i]->x == A->x &&
 			deleted_nodes[i]->y == A->y){
 			deleted_nodes.erase(deleted_nodes.begin() + i);
+			points[index]->activated = true;
 			return;
 		}
 	}
@@ -82,11 +85,11 @@ void delete_node(Point2D* A){
 }
 
 void generate_points(){
-	int min_x = -grid_x, max_x = grid_x;
-	int min_y = -grid_y, max_y = grid_y;
+	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
+	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
 	Point2D* pt;
-	for(int i = min_x; i < max_x; i += 10){
-		for (int j = min_y; j < max_y; j += 10){
+	for(int i = min_x + 5.0f; i < max_x - 5.0f; i += 10){
+		for (int j = min_y + 5.0f; j < max_y - 5.0f; j += 10){
 			pt = new Point2D(i, j);
 			points.push_back(pt);
 		}
@@ -141,7 +144,6 @@ void OnMouseClick(int button, int state, int x, int y){
 	Point2D* pt;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
 		//convertir x,y
-		std::cout << x-(grid_x/2.0f) << " " << grid_y/2.0f - y << std::endl;
 		pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
 		find_closest(pt);
 		delete pt;
@@ -157,7 +159,6 @@ void OnMouseClick(int button, int state, int x, int y){
 void OnMouseMotion(int x, int y){
 	Point2D* pt;
 	if(r){
-		std::cout << x << " " << y << std::endl;
 		pt = new Point2D(x-(grid_x/2.0f),(grid_y/2.0f) - y);
 		delete_node(pt);
 	}
@@ -174,9 +175,7 @@ void glPaint(void) {
 	//El fondo de la escena al color initial
 	glClear(GL_COLOR_BUFFER_BIT); //CAMBIO
 	glLoadIdentity();
-	//glOrtho(-float(grid_x)/2.0f, float(grid_x)/2.0f, -float(grid_y)/2.0f, float(grid_y)/2.0f, -1.0f, 1.0f);
-	glOrtho(-float(grid_x), float(grid_x), -float(grid_y), float(grid_y), -1.0f, 1.0f);
-	
+	glOrtho(-(float(grid_x)/2.0f), (float(grid_x)/2.0f), (-float(grid_y)/2.0f), (float(grid_y)/2.0f), -1.0f, 1.0f);
 	glPointSize(3);
 	glBegin(GL_POINTS);
 	glColor3d(0, 0, 255);
