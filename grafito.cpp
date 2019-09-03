@@ -2,7 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <vector>
-#include<GL/glut.h>
+#include <GL/glut.h>
 
 #define KEY_ESC 27
 #define DFS 1
@@ -15,6 +15,7 @@ int grid_x, grid_y;
 
 struct Point2D{
 	int x, y;
+	vector<Point2D*> neigh;
 	Point2D(){
 		this->x = this->y = 0;
 	}
@@ -22,6 +23,7 @@ struct Point2D{
 		this-> x = x;
 		this->y = y;
 	}
+	
 };
 
 std::vector<Point2D*> points;
@@ -32,7 +34,7 @@ std::vector<Point2D*> deleted_nodes; //nodos que ya no pertenecen al grafo
 //dibuja un simple gizmo
 void displayGizmo(){
 	glBegin(GL_LINES);
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 	glEnd();
 }
 bool r = false;
@@ -89,6 +91,50 @@ void generate_points(){
 			points.push_back(pt);
 		}
 	}
+	int tempx = (grid_x*2)/10;
+ 	int tempy = (grid_y*2)/10;
+	cout<<tempx<<" "<<tempy<<endl;
+	for(int i = 0;i<(grid_x*2)/10;i++){
+		for(int j = 0;j<(grid_y*2)/10;j++){
+			//cout<<"------------------------------------------------------"<<endl;
+			cout<<points[i*tempy+j]->x<<" "<<points[i*tempy+j]->y<<endl;
+			//cout<<"------------------------------------------------------"<<endl;
+			if(j-1>=0){
+				points[i*tempy+j]->neigh.push_back(points[i*tempy+(j-1)]);
+				//cout<<points[i*(j-1)]->x<<" "<<points[i*(j-1)]->y<<endl;
+			}
+			if(j+1<tempy){
+				points[i*tempy+j]->neigh.push_back(points[i*tempy+(j+1)]);
+				//cout<<points[i*(j+1)]->x<<" "<<points[i*(j+1)]->y<<endl;
+			}
+			if(i-1>=0){
+				points[i*tempy+j]->neigh.push_back(points[j+(i-1)*tempy]);
+				//cout<<points[j*(i-1)]->x<<" "<<points[j*(i-1)]->y<<endl;
+			}
+			if(i+1<tempx){
+				points[i*tempy+j]->neigh.push_back(points[j+(i+1)*tempy]);
+				//cout<<points[j*(i+1)]->x<<" "<<points[j*(i+1)]->y<<endl;
+			}
+			if(i+1<tempx&&j-1>=0){
+				points[i*tempy+j]->neigh.push_back(points[(j-1)+(i+1)*tempy]);
+				//cout<<points[(j-1)*(i+1)]->x<<" "<<points[(j-1)*(i+1)]->y<<endl;
+			}
+			if(i-1>=0&&j+1<tempy){
+				points[i*tempy+j]->neigh.push_back(points[(j+1)+(i-1)*tempy]);
+				//cout<<points[(j+1)*(i-1)]->x<<" "<<points[(j+1)*(i-1)]->y<<endl;
+			}
+			if(i-1>=0&&j-1>=0){
+				points[i*tempy+j]->neigh.push_back(points[(j-1)+(i-1)*tempy]);
+				//cout<<points[(j-1)*(i-1)]->x<<" "<<points[(j-1)*(i-1)]->y<<endl;
+			}
+			if(i+1<tempx&&j+1<tempy){
+				points[i*tempy+j]->neigh.push_back(points[(j+1)+(i+1)*tempy]);
+				//cout<<points[(j+1)*(i+1)]->x<<" "<<points[(j+1)*(i+1)]->y<<endl;
+			}
+			//cout<<"------------------------------------------------------"<<endl;
+		}
+	}
+	cout<<"points"<<points.size()<<endl;
 }
 
 void OnMouseClick(int button, int state, int x, int y){
@@ -128,7 +174,8 @@ void glPaint(void) {
 	//El fondo de la escena al color initial
 	glClear(GL_COLOR_BUFFER_BIT); //CAMBIO
 	glLoadIdentity();
-	glOrtho(-float(grid_x)/2.0f, float(grid_x)/2.0f, -float(grid_y)/2.0f, float(grid_y)/2.0f, -1.0f, 1.0f);
+	//glOrtho(-float(grid_x)/2.0f, float(grid_x)/2.0f, -float(grid_y)/2.0f, float(grid_y)/2.0f, -1.0f, 1.0f);
+	glOrtho(-float(grid_x), float(grid_x), -float(grid_y), float(grid_y), -1.0f, 1.0f);
 	
 	glPointSize(3);
 	glBegin(GL_POINTS);
@@ -143,6 +190,16 @@ void glPaint(void) {
 		glVertex2f((float)deleted_nodes.at(i)->x, (float)deleted_nodes.at(i)->y);
 	}
 	glEnd();
+	for(int i = 0; i<points.size();++i){
+		for(int j = 0;j<points[i]->neigh.size();++j){
+			glLineWidth(0.1f);
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_LINES);
+				glVertex2f((float)points[i]->x,(float)points[i]->y);
+				glVertex2f((float)points[i]->neigh[j]->x,(float)points[i]->neigh[j]->y);
+			glEnd();
+		}
+	}
 	//dibuja el gizmo
 	displayGizmo();
 	
