@@ -1,4 +1,5 @@
 #define GLUT_DISABLE_ATEXIT_HACK
+#include <bits/stdc++.h>
 #include <iostream>
 #include <math.h>
 #include <vector>
@@ -10,6 +11,7 @@
 #define DFS '1'
 #define HILLCLIMB '2'
 #define ASTAR '3'
+#define RESET '4'
 
 using namespace std;
 
@@ -31,6 +33,14 @@ struct Point2D{
 	
 };
 
+template<typename T>
+void pop_front(std::vector<T> &v)
+{
+	if (v.size() > 0) {
+		v.erase(v.begin());
+	}
+}
+
 bool compare_distances(Point2D* A, Point2D* B){
 	return A->distance < B->distance;
 }
@@ -40,6 +50,15 @@ std::vector<Point2D*> start_end; //si el tamaño de este es dos, pedimos [0] como
 //y [1] como objetivo
 std::vector<Point2D*> deleted_nodes; //nodos que ya no pertenecen al grafo
 std::vector<Point2D*> path;
+
+void resetGraph(){
+	for(unsigned int i = 0; i<points.size();++i){
+		points[i]->activated = true;
+	}
+	deleted_nodes.clear();
+	start_end.clear();
+	path.clear();
+}
 
 void reset_dfs(){
 	for(int i = 0; i < points.size(); i++){
@@ -69,7 +88,7 @@ void draw_point(int x, int y);
 
 void draw_path(){
 	if(path.size() > 1){
-		for(int i = 1;i < path.size()-1;++i){
+		for(int i = 0;i < path.size()-1;++i){
 			glPointSize(8);
 			glBegin(GL_POINTS);
 			glColor3f(0,1.0,0);
@@ -310,6 +329,41 @@ void hillclimbing(Point2D* partida, Point2D* llegada){
 }
 
 
+void aStarAlgorithm(){
+	path.clear();
+	Point2D *start = start_end[0];
+	Point2D *end = start_end[1];
+	Point2D *q = nullptr;
+	vector<Point2D *>::iterator it;
+	vector<Point2D *>openList;
+	vector<Point2D *> closedList;
+	vector<Point2D *>p;
+	openList.push_back(start);
+	p.push_back(start);
+	while(!openList.empty()){
+		q = openList[0];
+		pop_front(openList);
+		for(unsigned int i = 0; i<q->neigh.size();++i){
+			it = find(closedList.begin(),closedList.end(),q->neigh[i]);
+			if(q->neigh[i]==end){
+				p.push_back(end);
+				path = p;
+				return;
+			}else if(q->neigh[i]->activated&&it==closedList.end()){
+				q->neigh[i]->distance = euclidean_distance(q,q->neigh[i]) + euclidean_distance(q->neigh[i],end);
+				it = find(openList.begin(),openList.end(),q->neigh[i]);
+				if(it==openList.end()){
+					openList.push_back(q->neigh[i]);
+				}
+			}
+		}
+		closedList.push_back(q);
+		sort(openList.begin(),openList.end(), compare_distances);
+		p.push_back(openList[0]);
+	}
+	path=p;
+}
+
 void generate_points(){
 	int min_x = -grid_x/2.0f, max_x = grid_x/2.0f;
 	int min_y = -grid_y/2.0f, max_y = grid_y/2.0f;
@@ -453,6 +507,11 @@ void glPaint(void) {
 			start_end[0]->dfs = true;
 			hillclimbing(start_end[0], start_end[1]);
 			reset_dfs();
+		}else if(technique == 3){
+			aStarAlgorithm();
+		}else if(technique == 4){
+			resetGraph();
+			technique = 0;
 		}
 	}
 	
@@ -509,6 +568,12 @@ GLvoid window_key(unsigned char key, int x, int y) {
 	case HILLCLIMB:
 		//hill(*start_end[0], *start_end[1]);
 		technique = 2;
+		break;
+	case ASTAR:
+		technique = 3;
+		break;
+	case RESET:
+		technique = 4;
 		break;
 	default:
 		break;
