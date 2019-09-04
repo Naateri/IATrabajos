@@ -449,6 +449,7 @@ void glPaint(void) {
 			start_end[0]->dfs = true;
 			dfs(start_end[0], start_end[1]);
 			reset_dfs();
+			clear_paths();
 		} else if (technique == 2){
 			//stack_sim.clear();
 			while(! my_stack.empty()){ //emptying stack
@@ -460,8 +461,10 @@ void glPaint(void) {
 			start_end[0]->dfs = true;
 			hillclimbing(start_end[0], start_end[1]);
 			reset_dfs();
+			clear_paths();
 		}else if(technique == 3){
 			aStarAlgorithm();
+			reset_dfs();
 		}else if(technique == 4){
 			resetGraph();
 			technique = 0;
@@ -473,6 +476,7 @@ void glPaint(void) {
 			start_end[0]->dfs = true;
 			bfs(start_end[0], start_end[1]);
 			reset_dfs();
+			clear_paths();
 		}
 	}
 	
@@ -527,7 +531,6 @@ GLvoid window_key(unsigned char key, int x, int y) {
 		technique = 1;
 		break;
 	case HILLCLIMB:
-		//hill(*start_end[0], *start_end[1]);
 		technique = 2;
 		break;
 	case ASTAR:
