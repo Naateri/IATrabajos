@@ -6,12 +6,14 @@
 #include <GL/glut.h>
 #include <list>
 #include <stack>
+#include <queue>
 
 #define KEY_ESC 27
 #define DFS '1'
 #define HILLCLIMB '2'
 #define ASTAR '3'
 #define RESET '4'
+#define BFS '5'
 
 using namespace std;
 
@@ -153,40 +155,6 @@ void delete_node(Point2D* A){
 	deleted_nodes.push_back(temp);
 }
 
-/*void b_profundidad(Point2D* partida, Point2D* llegada){
-	path.clear();
-	reset_dfs();
-	Point2D* actual= partida;
-	Point2D* fin= llegada;
-	Point2D* ante=actual;
-	
-	list<Point2D* > vacio;
-	vacio.push_front(actual);
-	path.push_back(actual);
-	actual->dfs = true;
-	
-	while( actual->x != fin->x || actual->y != fin->y ){
-		bool cambio=false;
-		for(int i=0;i<actual->neigh.size();i++){
-			if(actual->neigh[i]->activated==true && actual->neigh[i]->dfs == false){
-				vacio.push_front(actual->neigh[i]);
-				actual->neigh[i]->dfs = true;
-				cambio=true;
-			}
-		}
-		if(cambio==false){
-			path.push_back(ante);
-			vacio.pop_front();
-		}
-		ante = actual;
-		actual = vacio.front();
-		//vacio.pop_front();
-		path.push_back(actual);
-		//cout<<"sigue"<<actual->x<<" , "<<actual->y<<endl;
-	}
-	path.push_back(fin);
-}*/
-
 stack<Point2D*> my_stack;
 
 void dfs(Point2D* partida, Point2D* llegada){
@@ -194,6 +162,12 @@ void dfs(Point2D* partida, Point2D* llegada){
 	Point2D* v;
 	
 	flag = 0;
+	
+	if (my_stack.empty()){
+		cout << "No path found\n";
+		return;
+	}
+	
 	v = my_stack.top();
 	v->path.push_back(v);
 	
@@ -217,57 +191,37 @@ void dfs(Point2D* partida, Point2D* llegada){
 	
 }
 
-void hill(Point2D partida,Point2D llegada)
-{
-	path.clear();
-	reset_dfs();
-	Point2D* actual=&partida;
-	Point2D* fin=&llegada;
-	Point2D* ante=actual;
+queue<Point2D*> my_queue;
+
+void bfs(Point2D* partida, Point2D* llegada){
 	
-	list<Point2D*> vacio;
-	vector<Point2D*> temp;
-	vacio.push_front(actual);
-	path.push_back(actual);
-	
-	
-	while(actual->x!=fin->x || actual->y!=fin->y  ){
-		
-		bool cambio=false;
-		for(int i=0;i<actual->neigh.size();i++){
-			if(actual->neigh[i]->activated==true && actual->neigh[i]->dfs == false){
-				temp.push_back(actual->neigh[i]);
-				//cout<<actual->neigh[i]->x<<" , "<<actual->neigh[i]->y<<endl;
-				actual->neigh[i]->dfs = true;
-				cambio=true;
-			}
-		}
-		
-		while(temp.size()!=0){
-			int i;
-			int mayor=0;
-			float a,b;
-			a=euclidean_distance(actual, temp[0]);
-			for(i=1;i<temp.size();i++){
-				b=euclidean_distance(actual, temp[i]);
-				if(b>a){
-					mayor=i;
-					a=b;
-				}
-			}
-			vacio.push_front(temp[mayor]);
-			temp.erase(temp.begin()+mayor);
-		}
-		if(cambio==false){
-			path.push_back(ante);
-			vacio.pop_front();  
-		}
-		ante=actual;
-		actual=vacio.front();
-		//vacio.pop_front();
-		path.push_back(actual);
+	Point2D* v;
+	if (my_queue.empty()){
+		cout << "No path found (bfs).\n";
+		return;
 	}
-	path.push_back(fin);
+	
+	v = my_queue.front();
+	v->path.push_back(v);
+	my_queue.pop();
+	
+	if (v->x == llegada->x && v->y == llegada->y){
+		path = v->path;
+		return;
+	}
+	
+	v->dfs = true;
+	
+	for(int i=0;i<v->neigh.size();i++){
+		if(v->neigh[i]->activated==true && v->neigh[i]->dfs == false){
+			my_queue.push(v->neigh[i]);
+			v->neigh[i]->dfs = true;
+			v->neigh[i]->path = v->path;
+		}
+	}
+	
+	bfs(partida, llegada);
+	
 }
 
 void update_distances(Point2D* llegada){
@@ -280,21 +234,21 @@ void update_distances(Point2D* llegada){
 
 list<Point2D*> stack_sim;
 
-void hillclimbing(Point2D* partida, Point2D* llegada){
-	
-	/*if (my_stack.size() == 0){
-		cout << "No path found.\n";
-		return;
-	}*/
-	
+void hillclimbing(Point2D* partida, Point2D* llegada){	
 	bool flag;
 	Point2D* v;
 	
 	flag = 0;
 	/*v = stack_sim.front();
 	stack_sim.pop_front();*/
+
+	if (my_stack.empty()){
+		cout << "No path found.\n";
+		return;
+	}
+	
 	v = my_stack.top();
-	my_stack.pop();
+	//1my_stack.pop();
 	v->path.push_back(v);
 	
 	if (v->x == llegada->x && v->y == llegada->y){
@@ -317,7 +271,7 @@ void hillclimbing(Point2D* partida, Point2D* llegada){
 		childs.sort(compare_distances);
 		childs.reverse();
 		for(list<Point2D*>::iterator it = childs.begin(); it != childs.end();
-			it++){
+		it++){
 			//stack_sim.push_back(*it);
 			my_stack.push(*it);
 		}
@@ -496,8 +450,7 @@ void glPaint(void) {
 			dfs(start_end[0], start_end[1]);
 			reset_dfs();
 		} else if (technique == 2){
-			//hill(*start_end[0], *start_end[1]);
-			stack_sim.clear();
+			//stack_sim.clear();
 			while(! my_stack.empty()){ //emptying stack
 				my_stack.pop();
 			}
@@ -512,6 +465,14 @@ void glPaint(void) {
 		}else if(technique == 4){
 			resetGraph();
 			technique = 0;
+		} else if (technique == 5){
+			while( !my_queue.empty()){
+				my_queue.pop();
+			}
+			my_queue.push(start_end[0]);
+			start_end[0]->dfs = true;
+			bfs(start_end[0], start_end[1]);
+			reset_dfs();
 		}
 	}
 	
@@ -574,6 +535,9 @@ GLvoid window_key(unsigned char key, int x, int y) {
 		break;
 	case RESET:
 		technique = 4;
+		break;
+	case BFS:
+		technique = 5;
 		break;
 	default:
 		break;
