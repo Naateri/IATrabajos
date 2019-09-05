@@ -16,3 +16,10 @@ Grafito.cpp: Trabajo con las busquedas.
 Dejar presionado click derecho para borrar nodos. Click izquierdo para marcar nodo inicial y nodo final (pintados de rojo).
 Hecho en C++ y GLUT.
 
+Tamaño caminos (puntos aleatorios):
+
+DFS: 188
+Hillclimbing: 54
+A*: 52
+BFS: 44
+
