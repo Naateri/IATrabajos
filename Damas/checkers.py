@@ -1,6 +1,7 @@
 from tkinter import *
 
 colors = ["red", "black"]
+turno = True
 
 """
 Tablero:
@@ -8,6 +9,51 @@ Tablero:
 1 -> colors[1] (black) (user)
 2 -> empty
 """
+
+class PosibleMove:
+    def __init__(self,state,numBlack,numRed,originX=None,originY=None,destX=None,destY=None):
+        self.state = state
+        self.numBlack = numBlack
+        self.numRed = numRed
+        self.originX = originX
+        self.originY = originY
+        self.destX = destX
+        self.destY = destY
+
+class Level():
+    def __init__(self,level,states):
+        self.level = level
+        self.states = states
+
+    
+
+class MiniMax:
+    levels = []
+    actualLevel = 0
+    def __init__(self,initialState,maxLevel):
+        posibleMove = PosibleMove(initialState,self.countPieces(1,initialState),self.countPieces(0,initialState))
+        states = [posibleMove]
+        level = Level(self.actualLevel,states)
+        self.levels.append(level)
+        self.actualLevel = self.actualLevel+1
+        self.maxLevel = maxLevel
+
+    
+        
+
+
+
+    def countPieces(self,piece,board):
+        count = 0
+        for i in range(0,8):
+            for j in range(0,8):
+                if(board[i][j]==piece):
+                    count = count + 1
+    
+    
+
+
+
 
 class Ficha():
     def __init__(self, color):
@@ -48,10 +94,14 @@ class Tablero():
             self.click_positions[1] = col
             self.cur_play = True
         else:
-            if (self.tablero[row][col] == 1):
+            if (self.tablero[row][col] == 1 and turno):
                 print("Not a valid position, try again!")
                 self.click_positions = [ 0,0 ] #pos_1, pos_2
                 self.cur_play = False
+                turno = False
+                return
+            else:
+                turno = True
                 return
             
             row_1 = self.click_positions[0]
