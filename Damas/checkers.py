@@ -10,7 +10,7 @@ Tablero:
 """
 
 class Node():
-    def __init__(self,boardState,level,posibleMoves=[],father=None,numPieces):
+    def __init__(self,boardState,level,numPieces=None,posibleMoves=[],father=None):
         self.boardState = boardState
         self.posibleMoves = posibleMoves
         self.father = father
@@ -50,6 +50,7 @@ class MiniMax():
                 turn = 1
             else:
                 turn = 0
+            
             print(len(n.posibleMoves))
             print(self.level)
         stack = []
@@ -64,7 +65,7 @@ class MiniMax():
                 stack.append(n.posibleMoves[i])
             
             if(n.level%2 == 0):
-                
+                turn = 1
             else:
                 turn = 0
             print(len(n.posibleMoves))
