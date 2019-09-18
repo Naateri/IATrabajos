@@ -1,8 +1,7 @@
 from tkinter import *
+from copy import copy, deepcopy
 
 colors = ["red", "black"]
-turno = True
-
 """
 Tablero:
 0 -> colors[0] (red)
@@ -10,49 +9,109 @@ Tablero:
 2 -> empty
 """
 
-class PosibleMove:
-    def __init__(self,state,numBlack,numRed,originX=None,originY=None,destX=None,destY=None):
-        self.state = state
-        self.numBlack = numBlack
-        self.numRed = numRed
-        self.originX = originX
-        self.originY = originY
-        self.destX = destX
-        self.destY = destY
-
-class Level():
-    def __init__(self,level,states):
+class Node():
+    def __init__(self,boardState,level,posibleMoves=[],father=None,numPieces):
+        self.boardState = boardState
+        self.posibleMoves = posibleMoves
+        self.father = father
         self.level = level
-        self.states = states
+        self.numPieces = numPieces
 
+class MiniMax():
+    level = 0
+    def __init__(self,initialBoard,maxDeph):
+        self.initialBoard = initialBoard
+        self.maxDeph = maxDeph
+        self.root = Node(self.initialBoard,self.level)
+        turn = 0
+        actualDeph = 0
+        queue = []
+        queue.append(self.root)
+        while queue and actualDeph<self.maxDeph:
+            n = queue.pop(0)
+            n.posibleMoves = self.getPosibleMovesOfANode(n.boardState,turn,self.level,n)
+            
+            for i in range(0,len(n.posibleMoves)):
+                queue.append(n.posibleMoves[i])
+            
+            if(turn == 0):
+                turn = 1
+            else:
+                turn = 0
+            print(len(n.posibleMoves))
+            print(self.level)
+            actualDeph = actualDeph + 1
+            self.level = self.level +1 
+        
+        while queue:
+            n = queue.pop(0)
+            n.posibleMoves = self.getPosibleMovesOfANode(n.boardState,turn,self.level,n)
+            if(turn == 0):
+                turn = 1
+            else:
+                turn = 0
+            print(len(n.posibleMoves))
+            print(self.level)
+        stack = []
+        stack.append(self.root)
+        for i in range(0,len(self.root.posibleMoves)):
+            stack.append(self.root.posibleMoves[i])
+        
+        while stack:
+            n = stack.pop()
+            
+            for i in range(0,len(n.posibleMoves)):
+                stack.append(n.posibleMoves[i])
+            
+            if(n.level%2 == 0):
+                
+            else:
+                turn = 0
+            print(len(n.posibleMoves))
+            print(self.level)
     
-
-class MiniMax:
-    levels = []
-    actualLevel = 0
-    def __init__(self,initialState,maxLevel):
-        posibleMove = PosibleMove(initialState,self.countPieces(1,initialState),self.countPieces(0,initialState))
-        states = [posibleMove]
-        level = Level(self.actualLevel,states)
-        self.levels.append(level)
-        self.actualLevel = self.actualLevel+1
-        self.maxLevel = maxLevel
-
-    
+    def printTree(self):
+        actualDeph = 0
+        queue = []
+        queue.append(self.root)
+        while queue and actualDeph<self.maxDeph:
+            n = queue.pop(0)
+            print(n.level)
+            for i in range(0,len(n.posibleMoves)):
+                queue.append(n.posibleMoves[i])
+            actualDeph = actualDeph + 1
         
 
-
-
-    def countPieces(self,piece,board):
-        count = 0
+            
+        
+    
+    def getPosibleMovesOfANode(self,board,piece,level,father=None):
+        moves = []
+        tempBoard = board
         for i in range(0,8):
             for j in range(0,8):
-                if(board[i][j]==piece):
-                    count = count + 1
-    
-    
-
-
+                if(tempBoard[i][j]==piece):
+                    if(i+1<8 and j+1<8 and board[i+1][j+1]!=piece):
+                        board[i][j]=2
+                        board[i+1][j+1] = piece
+                        moves.append(Node(board,level,[],father))
+                        board = tempBoard
+                    if(i-1>=0 and j+1<8 and board[i-1][j+1]!=piece):
+                        board[i][j]=2
+                        board[i-1][j+1] = piece
+                        moves.append(Node(board,level,[],father))
+                        board = tempBoard
+                    if(i+1<8 and j-1>=0 and board[i+1][j-1]!=piece):
+                        board[i][j]=2
+                        board[i+1][j-1] = piece
+                        moves.append(Node(board,level,[],father))
+                        board = tempBoard
+                    if(i-1>=0 and j-1>=0 and board[i-1][j-1]!=piece):
+                        board[i][j]=2
+                        board[i-1][j-1] = piece
+                        moves.append(Node(board,level,[],father))
+                        board = tempBoard
+        return moves
 
 
 class Ficha():
@@ -94,14 +153,10 @@ class Tablero():
             self.click_positions[1] = col
             self.cur_play = True
         else:
-            if (self.tablero[row][col] == 1 and turno):
+            if (self.tablero[row][col] == 1):
                 print("Not a valid position, try again!")
                 self.click_positions = [ 0,0 ] #pos_1, pos_2
                 self.cur_play = False
-                turno = False
-                return
-            else:
-                turno = True
                 return
             
             row_1 = self.click_positions[0]
@@ -124,8 +179,15 @@ class Tablero():
             self.tablero[row][col] = 1
 
             self.click_positions = [ [0,0], [0,0] ] #pos_1, pos_2
+            temp = deepcopy(self.tablero)
+            print(temp)
+            mm = MiniMax(self.tablero,3)
+            print(temp)
+            self.tablero = temp
             self.cur_play = False
+            
             print("Piece moved.")
+           
             self.draw()
 
     def draw_fichas(self):
