@@ -269,31 +269,48 @@ class Tablero():
                 self.cur_play = False
                 return
             st_5 = True
+
+            if st_1:
+                print("Statement1")
+            
+            if st_2:
+                print("Statement2")
+            
+            if (st_3):
+                print("Statement3")
+
+            if st_4:
+                print("Statement4")
             
             if self.tablero[row][col] == 0: #enemy
-                if st_1 and row+2 <= 7 and col+2 <= 7:
-                    if self.tablero[row+2][col+2] == 2:
+                print("col: " + str(col_1) + ", row: " + str(row_1))
+                if st_3 and row_1+2 <= 7 and col_1+2 <= 7:
+                    print("Condition1")
+                    if self.tablero[row_1+2][col_1+2] == 2:
+                        self.tablero[row_1][col_1] = 2
                         self.tablero[row][col] = 2
-                        self.tablero[row+1][col+1] = 2
-                        self.tablero[row+2][col+2] = 1
+                        self.tablero[row+1][col+1] = 1
                         st_5 = False
-                elif st_2 and row-2 >= 0 and col+2 <= 7:
-                    if self.tablero[row-2][col+2] == 2:
+                elif st_4 and row_1-2 >= 0 and col_1+2 <= 7:
+                    print("Condition2")
+                    if self.tablero[row_1-2][col_1+2] == 2:
+                        self.tablero[row_1][col_1] = 2
                         self.tablero[row][col] = 2
-                        self.tablero[row-1][col+1] = 2
-                        self.tablero[row-2][col+2] = 1
+                        self.tablero[row-1][col+1] = 1
                         st_5 = False
-                elif st_3 and row-2 >= 0 and col-2 >= 0:
-                    if self.tablero[row-2][col-2] == 2:
+                elif st_1 and row_1-2 >= 0 and col_1-2 >= 0:
+                    print("Condition3")
+                    if self.tablero[row_1-2][col_1-2] == 2:
+                        self.tablero[row_1][col_1] = 2
                         self.tablero[row][col] = 2
-                        self.tablero[row-1][col-1] = 2
-                        self.tablero[row-2][col-2] = 1
+                        self.tablero[row-1][col-1] = 1
                         st_5 = False
-                elif st_4 and row+2 <= 7 and col-2 >= 0:
-                    if self.tablero[row+2][col+2] == 2:
+                elif st_2 and row_1+2 <= 7 and col_1-2 >= 0:
+                    print("Condition4")
+                    if self.tablero[row_1+2][col_1-2] == 2:
+                        self.tablero[row_1][col_1] = 2
                         self.tablero[row][col] = 2
-                        self.tablero[row+1][col-1] = 2
-                        self.tablero[row+2][col-2] = 1
+                        self.tablero[row+1][col-1] = 1
                         st_5 = False
                 elif st_5:
                     print("Not a valid move. Try again.")
