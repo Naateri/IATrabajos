@@ -326,12 +326,12 @@ class Tablero():
             self.cur_play = False
             print("Piece moved.")
 
+            #self.draw()
+            
             print(utility_func(self.tablero))
             print("Cur difficulty: " + str(difficulty))
 
-            self.draw()
-
-            sleep(1.5)
+            #sleep(5)
 
             ###minmax calculations
 
@@ -355,10 +355,9 @@ class Tablero():
                     temp_ficha.draw(fila, columna)
 
     def draw(self):
-        difficulty = Scale(from_=1, to=10,orient=HORIZONTAL)
+        #difficulty = Scale(from_=1, to=10,orient=HORIZONTAL)
         #difficulty.set(1)
-        difficulty.grid(row=9,column=0,columnspan=8)
-
+        #difficulty.grid(row=9,column=0,columnspan=8)
         
         for fila in range(8):
             for columna in range(8):
@@ -378,11 +377,18 @@ class Tablero():
                              self.play(x, y, difficulty.get()))
                 bt.grid(row = fila, column = columna)
 
+        print("Buttons drawed")
+
         self.draw_fichas()
 
 root = Tk()
 
 tablero = Tablero()
 tablero.draw()
+
+difficulty = Scale(from_=1, to=10,orient=HORIZONTAL)
+#difficulty.set(1)
+difficulty.grid(row=9,column=0,columnspan=8)
+
 
 root.mainloop()
