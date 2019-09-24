@@ -31,8 +31,21 @@ public:
 		this->y = y;
 	}
 };
-vector<Point*> nodes;
-vector<vector<GLfloat>> adjacentMatrix;
+
+class Line{
+public:
+	Point *p1;
+	Point *p2;
+	
+	Line(Point *p1, Point *p2){
+		this->p1 = p1;
+		this->p2 = p2;
+	}
+	
+};
+vector< Point * > nodes;
+vector< vector<GLfloat> > adjacentMatrix;
+vector<Line *> edges;
 
 
 bool findPoint(GLfloat x, GLfloat y){
@@ -42,6 +55,10 @@ bool findPoint(GLfloat x, GLfloat y){
 		}
 	}
 	return false;
+}
+	
+GLfloat euclideanDistance(Point* p1, Point* p2){
+	return sqrt(pow(p1->x - p2->x,2)+pow(p1->y - p2->y,2));
 }
 
 void generateNodes(){
@@ -57,6 +74,36 @@ void generateNodes(){
 	}
 }
 	
+void generateEdges(){
+	for(int i = 0 ; i<nodes.size();++i){
+		vector<GLfloat> t;
+		for(int j = 0;j<nodes.size();++j){
+			if(i==j)
+				continue;
+			t.push_back(euclideanDistance(nodes[i],nodes[j]));
+			edges.push_back(new Line(nodes[i],nodes[j]));
+		}
+		adjacentMatrix.push_back(t);
+	}
+}
+/**
+Parametros:
+	Numero de Hijos por generacion
+	Numero de generacion
+	Primera poblacion caminos aleatoreos
+	Crossover se obtiene un subconjunto de uno de los padres y se completa con los nodos faltantes de la madre
+	Metodo para la seleccion elitismo: obtener los dos mejores de cada generacion
+	Mutacion swap de dos ciudades
+	
+	
+	
+**/
+	
+	
+void geneticAlgorithmTSP(){
+	
+}
+
 void drawPoints(){
 	glPointSize(6);
 	glColor3d(0, 0, 255);
@@ -66,6 +113,16 @@ void drawPoints(){
 		}
 	glEnd();
 	
+}
+	
+void drawEdges(){
+	glColor3d(255, 0, 0);
+	for(int i = 0;i<edges.size();++i){
+		glBegin(GL_LINES);
+			glVertex2f(edges[i]->p1->x,edges[i]->p1->y);
+			glVertex2f(edges[i]->p2->x,edges[i]->p2->y);
+		glEnd();
+	}
 }
 
 void glPaint(void) {
@@ -77,10 +134,7 @@ void glPaint(void) {
 	glOrtho(-800.0f,  800.0f,-800.0f, 800.0f, -1.0f, 1.0f);
 	
 	drawPoints();
-	glColor3d(0, 0, 255);
-	glBegin(GL_POINTS);
-		glVertex2f(nodes[0]->x,nodes[0]->y);
-	glEnd();
+	drawEdges();
 	//doble buffer, mantener esta instruccion al fin de la funcion
 	glutSwapBuffers();
 }
@@ -133,6 +187,7 @@ int main(int argc, char** argv) {
 	cout<<"Numero de generaciones: "<<endl;
 	cin>>numOfGenerations;
 	generateNodes();
+	generateEdges();
 	//Inicializacion de la GLUT
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
