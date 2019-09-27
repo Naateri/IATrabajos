@@ -1,7 +1,9 @@
 #define GLUT_DISABLE_ATEXIT_HACK
 #include <bits/stdc++.h>
 #include <iostream>
+#include <cstdlib>
 #include <math.h>
+#include <algorithm> 
 #include <vector>
 #include <GL/glut.h>
 #include <list>
@@ -13,6 +15,7 @@ using namespace std;
 
 int numPoints;
 int numOfGenerations;
+int numOfSons;
 
 GLfloat RandomFloat(GLfloat a, GLfloat b) {
 	GLfloat random = ((GLfloat) rand()) / (GLfloat) RAND_MAX;
@@ -43,6 +46,7 @@ public:
 	}
 	
 };
+
 vector< Point * > nodes;
 vector< vector<GLfloat> > adjacentMatrix;
 vector<Line *> edges;
@@ -90,6 +94,7 @@ void generateEdges(){
 Parametros:
 	Numero de Hijos por generacion
 	Numero de generacion
+	Numero de hijos por generacion
 	Primera poblacion caminos aleatoreos
 	Crossover se obtiene un subconjunto de uno de los padres y se completa con los nodos faltantes de la madre
 	Metodo para la seleccion elitismo: obtener los dos mejores de cada generacion
@@ -98,7 +103,57 @@ Parametros:
 	
 	
 **/
+float getDistanceBetweenTwoNodes(Point *p1, Point *p2){
+	int indexp1;
+	int indexp2;
+	for(int i = 0;i<nodes.size();++i){
+		if(nodes[i]->x==p1->x && nodes[i]->y == p1->y){
+			indexp1 = i;
+		}else if(nodes[i]->x==p2->x && nodes[i]->y == p2->y){
+			indexp2 = i;
+		}
+	}
 	
+	return adjacentMatrix[indexp1][indexp2];
+	
+}
+float fitnessFunction(vector<Point*>path){
+	float totalCost=0;
+	for(int i = 0;i<path.size()-1;++i){
+		totalCost+= getDistanceBetweenTwoNodes(path[i],path[i+1]);
+	}
+	return totalCost;
+}
+
+
+vector<vector<Point*>> getInitialPopulation(){
+	vector<Point*> nodesTemp = nodes;
+	vector< vector<Point*> > res;
+	Point *temp;
+	unsigned int pos1,pos2,j=0;
+	for(int i = 0;i<numOfSons;++i){
+		j = 0;
+		while(j<10){
+			pos1 = (rand()%nodesTemp.size());
+			pos2 = (rand()%nodesTemp.size());
+			temp = nodesTemp[pos1];
+			nodesTemp[pos1] = nodesTemp[pos2];
+			nodesTemp[pos2] = temp;
+			++j;
+		}
+		res.push_back(nodesTemp);
+	}
+	
+	return res;
+}
+	
+vector<vector<Point * >> doCrossOver(vector<Point * >father, vector1<Point *> mother){
+	int bottomLimit, topLimit;
+	vector<vecto<Point * >>res;
+	for(int i =0;i<numOfSons;++i){
+		
+	}
+}
 	
 void geneticAlgorithmTSP(){
 	
