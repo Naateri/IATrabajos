@@ -11,7 +11,9 @@
 #include <queue>
 #include <stdlib.h>
 #include <time.h>
-#include<windows.h>
+#include <chrono>
+#include <thread>
+//#include<windows.h>
 using namespace std;
 
 int numPoints;
@@ -19,23 +21,29 @@ int numOfGenerations;
 int numOfSons;
 int numOfMutation;
 
+int cur_gen = 0;
+
+bool got_path = false;
+
+class Point{
+public:
+	GLfloat x;
+	GLfloat y;
+	
+	Point(GLfloat x, GLfloat y){
+		this->x = x;
+		this->y = y;
+	}
+};
+
+vector<vector<Point *>> population;
+
 GLfloat RandomFloat(GLfloat a, GLfloat b) {
 	GLfloat random = ((GLfloat) rand()) / (GLfloat) RAND_MAX;
 	GLfloat diff = b - a;
 	GLfloat r = random * diff;
 	return a + r;
 }
-
-class Point{
-public:
-	GLfloat x;
-	GLfloat y;
-
-	Point(GLfloat x, GLfloat y){
-		this->x = x;
-		this->y = y;
-	}
-};
 
 class Line{
 public:
@@ -99,7 +107,7 @@ Parametros:
 	Numero de mutaciones
 	Numero de nodos
 Procedimiento:
-	Primera poblacion caminos aleatoreos
+	Primera poblacion caminos aleatorios
 	Crossover se obtiene un subconjunto de uno de los padres y se completan los nodos faltantes con la madre
 	Metodo para la seleccion es elitismo: obtener los dos mejores de cada generacion
 	Mutacion swap de dos nodos
@@ -186,13 +194,7 @@ vector<vector<Point * >> doCrossOver(vector<Point * >father, vector<Point *> mot
 		res.push_back(temp);
 		temp.clear();
 	}
-	//cout<<"Nueva Poblacion"<<endl;
-	/*for(int l = 0 ; l<res.size();++l){
-		for(int j = 0; j<res[l].size();++j){
-			cout<<res[l][j]->x<<" "<<res[l][j]->y<<" = ";
-		}
-		cout<<endl;
-	}*/
+	
 	return res;
 }
 
@@ -256,45 +258,41 @@ void drawPath(vector<Point *> path){
 	}
 	nodes.push_back(path[path.size()-1]);
 	edges.push_back(new Line(path[path.size()-1],path[0]));
+	drawEdges();
 }
 	
 	
-void geneticAlgorithmTSP(){
-	vector<vector<Point *>> population = getInitialPopulation();
-	int i = 0;
-	historicPopulation.push_back(population[0]);
-	//cout<<"Generacion 0"<<endl;
-	/*for(int l = 0 ; l<population.size();++l){
-		for(int j = 0; j<population[l].size();++j){
-			cout<<population[l][j]->x<<" "<<population[l][j]->y<<" = ";
-		}
-		cout<<endl;
-	}*/
-	while(i<numOfGenerations){
+void geneticAlgorithmTSP(int i){
+	
+	//if (i > numOfGenerations) return;
+	//nodes.clear();
+	//edges.clear();
+	
+	//while(i<numOfGenerations){
+	
+	if (i < numOfGenerations){
 		makeMutation(population);
-		//cout<<"Mutaciones:"<<endl;
-		/*for(int l = 0 ; l<population.size();++l){
-			for(int j = 0; j<population[l].size();++j){
-				cout<<population[l][j]->x<<" "<<population[l][j]->y<<" = ";
-			}
-			cout<<endl;
-		}*/
-		population= getFatherMother(population);
+		population = getFatherMother(population);
 		
 		population = doCrossOver(population[0],population[1]);
 		historicPopulation.push_back(population[0]);
 		++i;
-		//cout<<"Generacion "<<i<<endl;
+	}
+	if (i >= numOfGenerations && !got_path){
+		for(int i = 0 ;i<historicPopulation[historicPopulation.size()-1].size()-1;++i){
+			cout<<historicPopulation[historicPopulation.size()-1][i]->x<<"-"<<historicPopulation[historicPopulation.size()-1][i]->y<<" - Distancia: "<<getDistanceBetweenTwoNodes(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1])<<endl;
+			nodes.push_back(historicPopulation[historicPopulation.size()-1][i]);
+			edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1]));
+		}
+		cout<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->x<<"-"<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->y<<endl;
+		nodes.push_back(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]);
+		edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1],historicPopulation[historicPopulation.size()-1][0]));
+		//return;
+		got_path = true;
+	}
 		
-	}
-	for(int i = 0 ;i<historicPopulation[historicPopulation.size()-1].size()-1;++i){
-		cout<<historicPopulation[historicPopulation.size()-1][i]->x<<"-"<<historicPopulation[historicPopulation.size()-1][i]->y<<" - Distancia: "<<getDistanceBetweenTwoNodes(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1])<<endl;
-		nodes.push_back(historicPopulation[historicPopulation.size()-1][i]);
-		edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1]));
-	}
-	cout<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->x<<"-"<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->y<<endl;
-	nodes.push_back(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]);
-	edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1],historicPopulation[historicPopulation.size()-1][0]));
+	//}
+			
 	
 	
 }
@@ -307,12 +305,16 @@ void glPaint(void) {
 	glLoadIdentity();
 	glOrtho(-800.0f,  800.0f,-800.0f, 800.0f, -1.0f, 1.0f);
 	
+	geneticAlgorithmTSP(cur_gen++);
+	
 	drawPoints();
-	drawEdges();
-	//drawPath(historicPopulation[historicPopulation.size()-1]);
-		//Sleep(1);
+	//drawEdges();
+	drawPath(historicPopulation[historicPopulation.size()-1]);
+		//sleep(1);
+	
 	//doble buffer, mantener esta instruccion al fin de la funcion
 	glutSwapBuffers();
+	this_thread::sleep_for(chrono::seconds(1));
 }
 
 
@@ -368,7 +370,13 @@ int main(int argc, char** argv) {
 	cin>>numOfMutation;
 	generateNodes();
 	generateEdges();
-	geneticAlgorithmTSP();
+	
+	population = getInitialPopulation();
+	historicPopulation.push_back(population[0]);
+	
+	cout << "Glut init\n";
+	
+	//geneticAlgorithmTSP();
 	//Inicializacion de la GLUT
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
