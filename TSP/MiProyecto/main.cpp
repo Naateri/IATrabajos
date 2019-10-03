@@ -130,8 +130,11 @@ float getDistanceBetweenTwoNodes(Point *p1, Point *p2){
 float fitnessFunction(vector<Point*>path){
 	float totalCost=0;
 	for(int i = 0;i<path.size()-1;++i){
-		totalCost+= getDistanceBetweenTwoNodes(path[i],path[i+1]);
+		//totalCost += getDistanceBetweenTwoNodes(path[i],path[i+1]);
+		totalCost += euclideanDistance(path[i], path[i+1]);
 	}
+	//totalCost+=getDistanceBetweenTwoNodes(path[0],path[path.size()-1]);
+	totalCost += euclideanDistance(path[0],path[path.size()-1]);
 	return totalCost;
 }
 
@@ -280,11 +283,11 @@ void geneticAlgorithmTSP(int i){
 	}
 	if (i >= numOfGenerations && !got_path){
 		for(int i = 0 ;i<historicPopulation[historicPopulation.size()-1].size()-1;++i){
-			cout<<historicPopulation[historicPopulation.size()-1][i]->x<<"-"<<historicPopulation[historicPopulation.size()-1][i]->y<<" - Distancia: "<<getDistanceBetweenTwoNodes(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1])<<endl;
+			//cout<<historicPopulation[historicPopulation.size()-1][i]->x<<"-"<<historicPopulation[historicPopulation.size()-1][i]->y<<" - Distancia: "<<getDistanceBetweenTwoNodes(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1])<<endl;
 			nodes.push_back(historicPopulation[historicPopulation.size()-1][i]);
 			edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][i],historicPopulation[historicPopulation.size()-1][i+1]));
 		}
-		cout<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->x<<"-"<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->y<<endl;
+		//cout<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->x<<"-"<<historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]->y<<endl;
 		nodes.push_back(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1]);
 		edges.push_back(new Line(historicPopulation[historicPopulation.size()-1][historicPopulation[historicPopulation.size()-1].size()-1],historicPopulation[historicPopulation.size()-1][0]));
 		//return;
@@ -296,7 +299,11 @@ void geneticAlgorithmTSP(int i){
 	
 	
 }
-	
+
+
+float min_distance = 999999.0f;
+int min_index = 0;
+
 void glPaint(void) {
 	
 	//El fondo de la escena al color initial
@@ -307,14 +314,29 @@ void glPaint(void) {
 	
 	geneticAlgorithmTSP(cur_gen++);
 	
+	if (fitnessFunction(historicPopulation[historicPopulation.size() - 1]) < min_distance){
+		min_distance = fitnessFunction(historicPopulation[historicPopulation.size() - 1]);
+		min_index = historicPopulation.size() - 1;
+	}
+	
 	drawPoints();
 	//drawEdges();
-	drawPath(historicPopulation[historicPopulation.size()-1]);
+	//drawPath(historicPopulation[historicPopulation.size()-1]);
 		//sleep(1);
+	
+	if (cur_gen <= numOfGenerations){
+		std::cout << "Distance: " << fitnessFunction(historicPopulation[historicPopulation.size() -1]) << endl;
+		std::cout << "Generation: " << cur_gen << std::endl;
+		drawPath(historicPopulation[historicPopulation.size()-1]);
+	} else {
+		drawPath(historicPopulation[min_index]);
+	}
+	
+	
 	
 	//doble buffer, mantener esta instruccion al fin de la funcion
 	glutSwapBuffers();
-	this_thread::sleep_for(chrono::seconds(1));
+	this_thread::sleep_for(chrono::milliseconds(500));
 }
 
 
